@@ -1,58 +1,70 @@
 # Architecture
 
-## 1. SOS life cycle
+## 1. SOS processing sequence
 
 ```mermaid
 sequenceDiagram
-    participant U as Person
+    participant U as User
     participant N as SOS node
     participant M as Mesh
     participant G as Gateway engine
     participant D as Drone
-    participant C as Command center
+    participant W as Dashboard
 
-    U->>N: hold button 3 s (or double press)
+    U->>N: button held 3 s (or double press)
     N->>N: buffer packet, retry until ACK
     N->>M: SOS packet (seq, GPS, battery, motion)
-    M->>G: hops along best 1/LQ route
-    G->>G: retry? spam? sanity-check GPS
-    G-->>N: ACK (even if rate-limited)
-    G->>G: smooth position, score priority and confidence
-    G->>C: ranked incident, cluster, route
-    C->>C: fly to pin, open incident card
+    M->>G: forwarded along lowest-cost 1/LQ route
+    G->>G: retry check, rate limit, GPS sanity check
+    G-->>N: ACK (also sent for rate-limited packets)
+    G->>G: position filter, priority score, confidence
+    G->>W: ranked incident, cluster, route
+    W->>W: centre map on incident, open incident record
     D->>G: person detection (3 of 5 frames, within 20 m of node)
-    G->>C: drone confirmed, position refined, priority raised
+    G->>W: drone confirmed, position replaced, priority updated
 ```
 
 ## 2. Engine modules
 
-| Module | Responsibility | Key idea |
+| Module | Responsibility | Method |
 |---|---|---|
-| `link_quality` | Score each radio link 0–1 | Weighted SNR, RSSI and delivery rate; integer Q8 version |
-| `watchdog` | Track node liveness | One tiny state machine per node: ACTIVE → STALE (3 missed) → LOST (10 missed) |
-| `routing` | Pick paths and heal gaps | Dijkstra on cost `1/LQ`; alternate hop; relay point = reachable from the live network and covering the most missing nodes |
-| `priority` | Rank incidents | Six weighted components, 0–100, integer Q8 version |
-| `filters` | Separate real from false alarms | Seq-based retry detection, per-node rate limit, sanity checks, confidence ladder |
-| `gps` | Trustworthy position | HDOP gate, per-axis Kalman filter, uncertainty that grows without a fix |
-| `clustering` | Group nearby people | DBSCAN with 40 m radius; noise points become clusters of one |
-| `gateway` | Orchestration | Owns all state, merges drone detections, produces the dashboard snapshot |
+| `link_quality` | Link score 0-1 | Weighted SNR, RSSI and delivery ratio; integer Q8 implementation |
+| `watchdog` | Node liveness | Per-node state machine: ACTIVE, STALE (3 missed), LOST (10 missed) |
+| `routing` | Path selection and relay placement | Dijkstra with cost 1/LQ; alternate hop by excluding the failed neighbour; relay point maximises covered unreachable nodes |
+| `priority` | Incident ranking | Six weighted components, range 0-100, integer Q8 implementation |
+| `filters` | SOS validation | Sequence-based retry detection, per-node rate limit, sanity checks, confidence thresholds |
+| `gps` | Position estimate | HDOP gate, per-axis Kalman filter, uncertainty radius growing with time since last fix |
+| `clustering` | Spatial grouping | DBSCAN, eps 40 m; unclustered points reported as single-device clusters |
+| `gateway` | State and orchestration | Holds all state, merges drone detections, generates dashboard snapshots |
 
-## 3. Retry vs. repeat press
+## 3. Retransmission versus repeated press
 
-A node resends the **same sequence number** until it gets an ACK, so a repeated `seq` is a retry and is ignored. A **new** `seq` is a real extra press, which raises the priority. This stops a flaky radio from inflating priorities.
+A node retransmits an unacknowledged packet with the **same sequence number**. The gateway treats a repeated sequence number as a retransmission and ignores it. A **new** sequence number from the same node is a repeated press and increments the `repeat_presses` component. This prevents radio retransmissions from inflating priority.
 
-## 4. Never lose an SOS
+## 4. Invalid GPS handling
 
-A fix is trusted only if it passes every check (valid coordinates, HDOP ≤ 5, at least 4 satellites, inside the flood zone, no impossible jump). If it fails, the SOS is still accepted. The gateway falls back to the last good position, sets GPS quality to zero, and the confidence ladder routes it to drone verification.
+A position fix is accepted only if it passes all checks: valid coordinates, HDOP <= 5, at least 4 satellites, inside the configured zone radius, and no speed jump above 40 m/s relative to the previous fix. If a check fails, the SOS is still registered. The gateway substitutes the last valid position (or the last heartbeat position), sets GPS quality to 0, and the resulting low confidence selects drone verification.
 
-## 5. Dashboard data contract
+## 5. Dashboard data format
 
-`gateway.snapshot(t)` returns one JSON frame: `nodes`, `links`, `routes`, `sos` (ranked), `clusters`, `relay`, `unmatched_survivors`. The simulator saves a list of frames to `dashboard/frames.json`; a live gateway server would serve the same shape.
+`Gateway.snapshot(t)` returns one JSON-serialisable frame:
 
-## 6. Planned hardware split
-
-| Piece | Planned parts |
+| Key | Content |
 |---|---|
-| SOS node | ESP32 with LoRa, GPS module, accelerometer, hold button, cancel button, LiPo battery |
-| Gateway | ESP32 with LoRa on USB to a laptop or Raspberry Pi running this engine |
-| Drone | Small drone with a camera, YOLO detection, optional LoRa relay node |
+| `nodes` | id, state, last known position, battery, uncertainty radius |
+| `links` | `[node_a, node_b, LQ]` for each usable link |
+| `routes` | per node: path to gateway and total cost |
+| `sos` | ranked incidents: priority, colour, confidence, decision, position, battery, press count, drone status, age |
+| `clusters` | device count, centroid, maximum priority |
+| `relay` | suggested relay position and covered node IDs |
+| `unmatched_survivors` | drone detections with no nearby SOS node |
+
+The simulator stores a list of frames in `dashboard/frames.json`. A live gateway server is expected to serve the same structure.
+
+## 6. Planned hardware
+
+| Component | Planned parts |
+|---|---|
+| SOS node | ESP32 with LoRa transceiver, GPS module, accelerometer, hold button, cancel button, LiPo battery |
+| Gateway | ESP32 with LoRa transceiver connected over USB to a host (laptop or Raspberry Pi) running the engine |
+| Drone | Camera-equipped drone, YOLO person detection, optional LoRa relay node |
