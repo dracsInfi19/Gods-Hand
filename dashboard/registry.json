@@ -1,0 +1,14 @@
+{
+ "1": {"serial": "SOS-2401-7347", "name": "Meera Nair", "age": 34, "sex": "F", "phone": "+91 90000 10111", "address": "House 13, Ward 2, Riverside Colony", "blood": "B+", "notes": "Asthma, carries inhaler", "contact": "Arun Nair (husband)"},
+ "2": {"serial": "SOS-2402-7384", "name": "Ravi Kumar", "age": 67, "sex": "M", "phone": "+91 90000 10222", "address": "House 16, Ward 3, Riverside Colony", "blood": "O+", "notes": "Diabetic, hypertension", "contact": "Sunita Kumar (daughter)"},
+ "3": {"serial": "SOS-2403-7421", "name": "Anitha Joseph", "age": 29, "sex": "F", "phone": "+91 90000 10333", "address": "House 19, Ward 4, Riverside Colony", "blood": "A+", "notes": "Pregnant, 7 months", "contact": "Joseph T (brother)"},
+ "4": {"serial": "SOS-2404-7458", "name": "Mohammed Faiz", "age": 41, "sex": "M", "phone": "+91 90000 10444", "address": "House 22, Ward 5, Riverside Colony", "blood": "AB+", "notes": "None reported", "contact": "Sana Faiz (wife)"},
+ "5": {"serial": "SOS-2405-7495", "name": "Lakshmi Devi", "age": 72, "sex": "F", "phone": "+91 90000 10555", "address": "House 25, Ward 6, Riverside Colony", "blood": "B-", "notes": "Uses walking aid", "contact": "Ramesh (son)"},
+ "6": {"serial": "SOS-2406-7532", "name": "Suresh Babu", "age": 38, "sex": "M", "phone": "+91 90000 10666", "address": "House 28, Ward 1, Riverside Colony", "blood": "O-", "notes": "Ankle injury", "contact": "Geeta Babu (wife)"},
+ "7": {"serial": "SOS-2407-7569", "name": "Divya Menon", "age": 26, "sex": "F", "phone": "+91 90000 10777", "address": "House 31, Ward 2, Riverside Colony", "blood": "A-", "notes": "None reported", "contact": "Menon K (father)"},
+ "8": {"serial": "SOS-2408-7606", "name": "Thomas Mathew", "age": 55, "sex": "M", "phone": "+91 90000 10888", "address": "House 34, Ward 3, Riverside Colony", "blood": "B+", "notes": "Heart patient", "contact": "Mary Mathew (wife)"},
+ "9": {"serial": "SOS-2409-7643", "name": "Fathima Beevi", "age": 63, "sex": "F", "phone": "+91 90000 10999", "address": "House 37, Ward 4, Riverside Colony", "blood": "O+", "notes": "Needs daily medication", "contact": "Yusuf (son)"},
+ "10": {"serial": "SOS-2410-7680", "name": "Kiran Rao", "age": 31, "sex": "M", "phone": "+91 90000 11110", "address": "House 40, Ward 5, Riverside Colony", "blood": "AB-", "notes": "None reported", "contact": "Latha Rao (mother)"},
+ "11": {"serial": "SOS-2411-7717", "name": "Pooja Shetty", "age": 24, "sex": "F", "phone": "+91 90000 11221", "address": "House 43, Ward 6, Riverside Colony", "blood": "A+", "notes": "None reported", "contact": "Shetty R (father)"},
+ "0": {"serial": "GW-0001-0001", "name": "Gateway", "age": "", "sex": "", "phone": "", "address": "Command post", "blood": "", "notes": "", "contact": ""}
+}
